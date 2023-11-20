@@ -28,6 +28,20 @@ const loadCalendars = createAsyncThunk('calendar/loadCalendars', async () => {
       }
     } while (pageToken != null && pageToken != undefined && pageToken != '');
 
+    // Sort calendarIds array by selected field
+    calendarIds.sort((a, b) => {
+      const calendarA = calendars[a];
+      const calendarB = calendars[b];
+
+      if (calendarA.selected && !calendarB.selected) {
+        return -1;
+      } else if (!calendarA.selected && calendarB.selected) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
     return { calendarIds, calendars };
 
   } catch (error) {
