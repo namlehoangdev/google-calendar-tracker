@@ -2,7 +2,31 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { triggerUpdateTime } from './commonService';
 import apiCalendar from '../apiCalendar';
 import { OFF_FLAG, TIME_ZONE } from '../config';
+ 
 
+function adaptStartTime(time, suffix) {
+  if (time.date) {
+    return {
+      dateTime: time.date + "T00:00:00" + suffix,
+      timeZone: TIME_ZONE,
+      isConverted: true
+    }
+  } else {
+    return time;
+  }
+}
+
+function adaptEndTime(time, suffix) {
+  if (time.date) {
+    return {
+      dateTime: time.date + "T23:59:59" + suffix,
+      timeZone: TIME_ZONE,
+      isConverted: true
+    }
+  } else {
+    return time;
+  }
+}
 
 const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar',
   async ({ calendarId, queryOptions = {} }, { rejectWithValue, getState }) => {
@@ -12,6 +36,7 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
       let events = {};
 
       const { currentTimeISO8601 } = getState().common || {};
+      const suffixZone = currentTimeISO8601.toString().substring(19);
 
       do {
         const response = await apiCalendar.listEvents({
@@ -25,13 +50,15 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
 
         if (response && response.result && response.result.items) {
           response.result.items.forEach(item => {
+            let adaptEvent = { ...item, start: adaptStartTime(item.start, suffixZone), end: adaptEndTime(item.end, suffixZone) };
+
             if (events[item.id]) {
               events[item.id] = {
                 ...events[item.id],
-                ...item,
+                ...adaptEvent,
               }
             } else {
-              events[item.id] = item;
+              events[item.id] = adaptEvent;
               sortedByStartTimeIds = sortedByStartTimeIds.concat(item.id);
             }
           })

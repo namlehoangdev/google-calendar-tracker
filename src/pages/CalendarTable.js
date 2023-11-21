@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Table, Thead, Box, ListIcon, Link, Tbody, Icon, Button, Spinner, Tr, Th, Td, Flex, Checkbox, Tag, Text, useDisclosure, UnorderedList, ListItem, Progress } from '@chakra-ui/react';
+import {
+    Table, Thead, Box, ListIcon, Link, Tbody, Icon, Button, Spinner, Tr, Th, Td, Flex, Checkbox, Tag, Text, useDisclosure, UnorderedList, ListItem, Progress,
+    CircularProgress,
+    Center,
+    CircularProgressLabel,
+    Skeleton
+} from '@chakra-ui/react';
 
 import EventListModal from '../components/EventListModal';
 import { FaEllipsisV, FaSync } from "react-icons/fa";
 
-import { getDiffs, simpleShortDays } from '../utils';
+import { getDiffs, simpleShortDays, parseDateTime } from '../utils';
 
 function getIsLoadingStyle(isLoading) {
     return isLoading ? {
@@ -14,6 +20,19 @@ function getIsLoadingStyle(isLoading) {
             opacity: isLoading ? 0.5 : 1,
         },
     } : {};
+}
+function setWarningColor(percentage) {
+    const green = [0, 255, 0]; // RGB values for green
+    const red = [255, 0, 0]; // RGB values for red
+
+    const transformedColor = green.map((greenValue, index) => {
+        const redValue = red[index];
+        const transformedValue = Math.round(greenValue + ((redValue - greenValue) * Math.sqrt(percentage / 100)));
+        return transformedValue;
+    });
+
+    const rgbColor = `rgb(${transformedColor[0]}, ${transformedColor[1]}, ${transformedColor[2]})`;
+    return rgbColor;
 }
 
 
@@ -25,11 +44,15 @@ export default function CalendarTable({ onRefresh = () => { } }) {
 
     const [modalData, setModalData] = useState({});
 
+    const isRenderSkeleton = isLoading && (!calendarIds || calendarIds.length === 0);
+
 
     function handleClick(modalData) {
         setModalData(modalData);
         onOpen();
     }
+
+
 
     function renderEventCounters(eventObj = {}, calendarId) {
         const { happeningIds = [], upcomingIds = [], pastIds = [], events,
@@ -44,39 +67,63 @@ export default function CalendarTable({ onRefresh = () => { } }) {
         const activePassed = tilNowPassed - tilNowOff;
         const totalBooked = sortedByStartTimeIds.length;
 
+        const offRate = Math.round(tilNowOff / Math.max(tilNowPassed, 1) * 100);
+
         return (
             <Td>
-                <Flex direction="column">
-                    {upcomingOff > 0 &&
-                        <>
-                            <Link
-                                color={"red"}
-                                onClick={() => handleClick({ eventObj: eventsByCalendarId[calendarId], title: calendars[calendarId]?.summary })}>
-                                Errors there are <b>{upcomingOff}</b> future events marked offline. <br />Please <b>delete</b> it or <b>remove the "off:" tag</b>.
-                                Click to see more.
+                <Flex direction="row">
+                    <Flex mr={10} direction="column" alignContent={"center"} justifyContent={"center"}>
+                        <Text mb={2} fontSize="xs" >Passed's off rate: <b>{offRate}</b>%</Text>
+                        <Flex alignContent={"center"} justifyContent={"center"}>
+                            <Box mr={2}>
+                                <CircularProgress value={offRate} color={setWarningColor(offRate)} thickness={15} capIsRound={true} >
+                                    <CircularProgressLabel>{offRate}%</CircularProgressLabel>
+                                </CircularProgress>
+                            </Box>
+                            <Box opacity={0.5}>
+                                <Box>
+                                    <Text fontSize="xs">  <b>{tilNowOff}</b> off</Text>
+                                </Box>
+                                <Box borderTopWidth={1} borderTopColor={"black.200"}>
+                                    <Text fontSize="xs">  <b>{Math.max(tilNowPassed, 1)}</b> events</Text>
+                                </Box>
+                            </Box>
+                        </Flex>
+                    </Flex>
+                    <Flex direction="column">
+                        {upcomingOff > 0 &&
+                            <>
+                                <Link
+                                    color={"red"}
+                                    onClick={() => handleClick({ eventObj: eventsByCalendarId[calendarId], title: calendars[calendarId]?.summary })}>
+                                    Errors there are <b>{upcomingOff}</b> future events marked offline. <br />Please <b>delete</b> it or <b>remove the "off:" tag</b>.
+                                    Click to see more.
 
-                            </Link>
-                            <br />
-                        </>}
-                    <Text fontSize="sm" >
-                        Upcoming: <b>{upcomingIds.length}</b>
-                    </Text>
+                                </Link>
+                                <br />
+                            </>}
+                        <Text fontSize="sm" >
+                            Upcoming: <b>{upcomingIds.length}</b>
+                        </Text>
 
 
-                    <Text fontSize="sm" >
-                        Passed: <b>{activePassed}</b>
-                        <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>  (<b>{tilNowPassed}</b> events - <b>{tilNowOff}</b> offs)</Text>
-                    </Text>
+                        <Text fontSize="sm" >
+                            Passed: <b>{activePassed}</b>
+                            <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>  (<b>{tilNowPassed}</b> events - <b>{tilNowOff}</b> offs)</Text>
+                        </Text>
 
 
 
 
-                    <Text fontSize="sm" >Total available: <b>{totalBooked - tilNowOff}</b>
-                        <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}> (<b>{totalBooked}</b> events - <b>{tilNowOff}</b> offs)</Text>
-                    </Text>
+                        <Text fontSize="sm" >Total available: <b>{totalBooked - tilNowOff}</b>
+                            <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}> (<b>{totalBooked}</b> events - <b>{tilNowOff}</b> offs)</Text>
+                        </Text>
 
 
-                </Flex >
+                    </Flex>
+
+
+                </Flex>
             </Td >)
     }
 
@@ -124,7 +171,8 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                 <Text fontSize="sm" >
                     <b>{monthDiff}</b> months or <b>{weekDiff}</b> weeks or  <b>{dayDiff}</b> days
                     <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>
-                        From  <b>{simpleShortDays(firstEvent?.start?.dateTime)}</b>  to  <b>{simpleShortDays(lastEvent?.start?.dateTime)}</b>
+                        From  <b>{parseDateTime(firstEvent?.start)?.dateString}</b>{" "}
+                        to  <b>{parseDateTime(lastEvent?.end)?.dateString}</b>
                     </Text>
                 </Text>
 
@@ -142,6 +190,7 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                     size="xs"
                     value={progress}
                     borderRadius="15px"
+                    maxWidth={400}
                 />
             </Flex>
         </Td>)
@@ -151,7 +200,7 @@ export default function CalendarTable({ onRefresh = () => { } }) {
     function renderRows() {
         return calendarIds && calendarIds.map((calendarId) => {
             const isClendarLoading = eventsByCalendarId[calendarId]?.isLoading;
-             
+
             return (
                 <Tr key={calendarId} {...getIsLoadingStyle(isClendarLoading)}>
                     {renderNames(calendars[calendarId], eventsByCalendarId[calendarId])}
@@ -173,6 +222,28 @@ export default function CalendarTable({ onRefresh = () => { } }) {
         })
     }
 
+    function renderSkeletonRows() {
+        return (<Tr>
+            <Td>
+                <Skeleton height={5} my={2} maxWidth={400} />
+            </Td>
+            <Td>
+                <Skeleton height={5} my={2} maxWidth={100} />
+                <Skeleton height={5} my={2} maxWidth={200} />
+                <Skeleton height={5} my={2} maxWidth={300} />
+            </Td>
+            <Td>
+
+                <Skeleton height={5} my={2} maxWidth={100} />
+                <Skeleton height={5} my={2} />
+            </Td>
+            <Td>
+                <Skeleton height={5} my={2} maxWidth={50} />
+                <Skeleton height={5} my={2} maxWidth={50} />
+            </Td>
+        </Tr>)
+    }
+
 
     return (
         <>
@@ -184,11 +255,10 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                             <Th>Summary</Th>
                             <Th>Duration</Th>
                             <Th>Events</Th>
-
                         </Tr>
                     </Thead>
                     <Tbody {...getIsLoadingStyle(isLoading)}>
-                        {renderRows()}
+                        {isRenderSkeleton ? Array(3).fill().map(renderSkeletonRows) : renderRows()}
                     </Tbody>
                 </Table>
             </Box>

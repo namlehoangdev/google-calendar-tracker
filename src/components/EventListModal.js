@@ -12,10 +12,10 @@ import {
     ModalCloseButton,
     ModalFooter,
     Text,
-    ModalBody
+    ModalBody,
 } from '@chakra-ui/react'
 
-import { getBeautyTimeISO8601 } from '../utils';
+import { getBeautyTimeISO8601, parseDateTime } from '../utils';
 import { OFF_FLAG } from '../config';
 
 
@@ -35,6 +35,8 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
     const reversedPassedIds = pastIds.concat(happeningIds).reverse();
     const reversedUpcomingIds = [...upcomingIds].reverse();
 
+
+
     function getStatusConfig(summary, isUpcoming) {
         const isOff = summary.startsWith(OFF_FLAG)
         if (isUpcoming) {
@@ -50,19 +52,22 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
             return null;
         }
         return (ids.map(id => {
-            const { summary, start: rawStart = "", end: rawEnd = "" } = events[id] || {};
+            const { summary, start: rawStart, end: rawEnd } = events[id] || {};
 
             const { status, bgStatus } = getStatusConfig(summary, isUpcoming);
+
+            const start = parseDateTime(rawStart);
+            const end = parseDateTime(rawEnd);
 
             return (<Tr key={id} opacity={isUpcoming ? 1 : 0.5}>
                 <Td >
                     {summary}
                 </Td>
                 <Td whiteSpace="nowrap">
-                    {getBeautyTimeISO8601(rawStart.dateTime)}
+                    {start.time} {start.dateString}
                 </Td>
                 <Td whiteSpace="nowrap">
-                    {getBeautyTimeISO8601(rawEnd.dateTime)}
+                    {end.time} {end.dateString}
                 </Td>
                 <Td>
                     <Badge bg={bgStatus} color={"white"} >

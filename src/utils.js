@@ -48,12 +48,33 @@ function simpleShortDays(dateTime) {
 
     const month = monthNamesShort[date.getUTCMonth()]; // Months are zero-based, so adding 1 to get the correct month
     const day = date.getUTCDate();
+    let year = date.getUTCFullYear().toString();
 
     return `${day} ${month}`
 }
 
 
 
+function parseDateTime(dateTime) {
+    if (!dateTime) {
+        return { time: "--:--", dateString: "--/--/--" };
+    }
 
-export { getCurrentTimeISO8601, convertToISOWithTimeZone, getBeautyTimeISO8601, getDiffs, simpleShortDays };
+    const { dateTime: input, isConverted } = dateTime;
+
+
+    const time = isConverted ? "--:--" : input.substring(11, 16);
+    const date = input.substring(8, 10);
+    const month = input.substring(5, 7);
+    const year = input.substring(0, 4);
+
+    const dateString = `${date}/${month}/${year}`;
+
+    return { time, dateString };
+}
+
+
+
+
+export { getCurrentTimeISO8601, convertToISOWithTimeZone, getBeautyTimeISO8601, getDiffs, simpleShortDays, parseDateTime };
 

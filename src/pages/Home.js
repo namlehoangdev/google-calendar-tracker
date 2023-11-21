@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Heading, Input, Flex, Button, Icon, Spinner } from '@chakra-ui/react';
+import { Box, Heading, Input, Flex, Button, Icon, Spinner, Center } from '@chakra-ui/react';
 
 import AuthenticateModal from '../components/AuthenticateModal';
 import Footer from '../components/Footer';
@@ -9,7 +9,7 @@ import CalendarTable from './CalendarTable';
 import { loadCalendars } from '../services/calendarsService';
 import { loadAllEventsInCalendar } from '../services/eventsService';
 import { triggerUpdateTime } from '../services/commonService';
-import { convertToISOWithTimeZone } from '../utils';
+import { convertToISOWithTimeZone, getCurrentTimeISO8601 } from '../utils';
 
 import { FaSync } from "react-icons/fa";
 
@@ -41,7 +41,18 @@ export default function Home() {
             dispatch(loadCalendars());
         }
     }, [triggerRefreshAll])
- 
+
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            dispatch(triggerUpdateTime(getCurrentTimeISO8601()))
+        }, 300000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
     function handleInputChange(event) {
         dispatch(triggerUpdateTime(event.target.value + ":00Z"));
     }
@@ -53,17 +64,18 @@ export default function Home() {
     function handleRefreshAll() {
         updateTriggerRefresh(!triggerRefreshAll);
     }
-
+    
 
     return (
         <Flex flexDirection="column" minHeight="100vh">
             <AuthenticateModal />
-            <Box p={4} mb={10}>
-                <Flex mb={10} mt={10} center="center" align={"center"} justify={"center"}>
-                    <Heading as="h1" size="md" color="blue.500">
+            <Box p={4} mb={10} pt={10}>
+                <Center>
+                    <Heading as="h1" size="md" color="blue.500" center={true}>
                         Calendar's events analytics tool
                     </Heading>
-
+                </Center>
+                <Flex mt={5} mb={10}center="center" align={"center"} justify={"center"}>
                     <Input
                         ml={3}
                         value={convertToISOWithTimeZone(currentTimeISO8601)}
