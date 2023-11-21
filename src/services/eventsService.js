@@ -5,11 +5,13 @@ import { OFF_FLAG, TIME_ZONE } from '../config';
 
 
 const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar',
-  async ({ calendarId, currentTime, queryOptions }) => {
+  async ({ calendarId, queryOptions = {} }, { rejectWithValue, getState }) => {
     try {
       let pageToken = null;
       let sortedByStartTimeIds = [];
       let events = {};
+
+      const { currentTimeISO8601 } = getState().common || {};
 
       do {
         const response = await apiCalendar.listEvents({
@@ -45,17 +47,17 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
         const startTimeA = new Date(events[a].start.dateTime);
         const startTimeB = new Date(events[b].start.dateTime);
         return startTimeA - startTimeB;
-      }); 
-      return { calendarId, sortedByStartTimeIds, events, currentTimeISO8601: currentTime }
+      });
+      return { calendarId, sortedByStartTimeIds, events, currentTimeISO8601 }
     } catch (error) {
       console.log("EventService.loadAllEventsInCalendar", error);
-      throw error;
+      return rejectWithValue(error.response.data);
     }
   });
 
 function updateEventIds(events, sortedByStartTimeIds, givenTime) {
   const currentTime = new Date(givenTime);
- 
+
 
   let happeningIds = [];
   let upcomingIds = [];
@@ -101,18 +103,36 @@ const eventSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(loadAllEventsInCalendar.fulfilled, (state, action) => {
-        const { calendarId, sortedByStartTimeIds, events, currentTimeISO8601 } = action.payload;
+        const { calendarId, sortedByStartTimeIds, events, currentTimeISO8601 } = action.payload || {};
         const eventIdGroups = updateEventIds(events, sortedByStartTimeIds, currentTimeISO8601) || {};
 
         state[calendarId] = {
           calendarId,
           sortedByStartTimeIds,
           events,
-          ...eventIdGroups
+          ...eventIdGroups,
+          isLoading: false
         }
 
       })
-
+      .addCase(loadAllEventsInCalendar.rejected, (state, action) => {
+        const calendarId = action?.meta?.arg?.calendarId;
+        if (calendarId && state[calendarId]) {
+          state[calendarId].isLoading = false;
+        }
+      })
+      .addCase(loadAllEventsInCalendar.pending, (state, action) => {
+        const calendarId = action?.meta?.arg?.calendarId;
+        if (calendarId) {
+          if (state[calendarId]) {
+            console.log('here:', true);
+            state[calendarId].isLoading = true;
+          } else {
+            console.log('here2:', true);
+            state[calendarId] = { isLoading: true }
+          }
+        }
+      })
 
       .addCase(triggerUpdateTime, (state, action) => {
 

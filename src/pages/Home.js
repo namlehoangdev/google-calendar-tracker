@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Heading, Input, Flex, Button, Icon } from '@chakra-ui/react';
+import { Box, Heading, Input, Flex, Button, Icon, Spinner } from '@chakra-ui/react';
 
 import AuthenticateModal from '../components/AuthenticateModal';
 import Footer from '../components/Footer';
@@ -19,9 +19,8 @@ export default function Home() {
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated, (prevValue, curValue) => {
         return !!prevValue === !!curValue;
     });
-    const { calendarIds, calendars } = useSelector((state) => state.calendar);
+    const { calendarIds, isLoading } = useSelector((state) => state.calendar);
     const { currentTimeISO8601 } = useSelector((state) => state.common);
-    const eventsByCalendarId = useSelector((state) => state.event);
     const [triggerRefreshAll, updateTriggerRefresh] = useState(false);
 
 
@@ -35,19 +34,20 @@ export default function Home() {
         }
     }, [isAuthenticated])
 
-
     useEffect(() => {
-        for (let calendarId of calendarIds) {
-            dispatch(loadAllEventsInCalendar({ calendarId, currentTime: currentTimeISO8601, queryOptions: {} }));
+        if (!isAuthenticated) {
+            return;
+        } else {
+            dispatch(loadCalendars());
         }
-    }, [JSON.stringify(calendarIds), triggerRefreshAll]);
-
+    }, [triggerRefreshAll])
+ 
     function handleInputChange(event) {
         dispatch(triggerUpdateTime(event.target.value + ":00Z"));
     }
 
     function handleRefreshCalendar(calendarId) {
-        dispatch(loadAllEventsInCalendar({ calendarId, currentTime: currentTimeISO8601, queryOptions: {} }));
+        dispatch(loadAllEventsInCalendar({ calendarId }));
     }
 
     function handleRefreshAll() {
@@ -75,11 +75,11 @@ export default function Home() {
                         width={"200px"}
                     />
                     <Button p="0px" bg="transparent" onClick={handleRefreshAll}>
-                        <Icon as={FaSync} color="gray.500" cursor="pointer" />
+                        {isLoading ? <Spinner size="md" color="blue.500" />
+                            : <Icon as={FaSync} color="gray.500" cursor="pointer" />}
                     </Button>
                 </Flex>
-                <CalendarTable calendarIds={calendarIds} calendars={calendars} eventsByCalendarId={eventsByCalendarId}
-                    onRefresh={handleRefreshCalendar} />
+                <CalendarTable onRefresh={handleRefreshCalendar} />
             </Box>
             <Footer />
         </Flex >

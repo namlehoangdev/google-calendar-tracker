@@ -8,8 +8,10 @@ import {
     ModalHeader,
     ModalFooter,
     Button
-    , useDisclosure
+    , useDisclosure,
+    ModalBody
 } from '@chakra-ui/react'
+import { FaGoogle } from "react-icons/fa";
 import apiCalendar from '../apiCalendar';
 import { login } from '../services/authService';
 
@@ -36,13 +38,18 @@ export default function AuthenticateModal({ onSuccess = () => { } }) {
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose}>
+        <Modal isOpen={isOpen} onClose={onClose} closeOnOverlayClick={false} size="xs" isCentered={true}>
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>Please Sign in</ModalHeader>
+                <ModalHeader>Login</ModalHeader>
+                <ModalBody>
+                    Login to sync calendars and events from your Google Calendar
+                </ModalBody>
                 <ModalFooter>
-                    <Button colorScheme='blue' mr={3} onClick={handleSignIn}>
-                        Sign in with Google
+                    <Button 
+                        variant="outline" onClick={handleSignIn}
+                        leftIcon={<FaGoogle color='tomato' />}>
+                        Continue with Google
                     </Button>
                 </ModalFooter>
             </ModalContent>

@@ -1,8 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { loadAllEventsInCalendar } from './eventsService';
 import apiCalendar from '../apiCalendar';
 
 
-const loadCalendars = createAsyncThunk('calendar/loadCalendars', async () => {
+const loadCalendars = createAsyncThunk('calendar/loadCalendars', async (params, { dispatch }) => {
   try {
     let calendarIds = [];
     let calendars = {};
@@ -42,6 +43,9 @@ const loadCalendars = createAsyncThunk('calendar/loadCalendars', async () => {
       }
     });
 
+    for (let calendarId of calendarIds) {
+      dispatch(loadAllEventsInCalendar({ calendarId }));
+    }
     return { calendarIds, calendars };
 
   } catch (error) {
@@ -53,17 +57,35 @@ const loadCalendars = createAsyncThunk('calendar/loadCalendars', async () => {
 const calendarSlice = createSlice({
   name: 'calendar',
   initialState: {
+    isLoading: false,
+    error: null,
     calendarIds: [],
     calendars: {},
   },
-  reducers: {},
+  reducers: {
+    reducers: {
+    },
+  },
   extraReducers: (builder) => {
-    builder.addCase(loadCalendars.fulfilled, (state, action) => {
-      state.calendarIds = action.payload.calendarIds;
-      state.calendars = action.payload.calendars;
-    });
+    builder
+      .addCase(loadCalendars.fulfilled, (state, action) => {
+        state.calendarIds = action.payload.calendarIds;
+        state.calendars = action.payload.calendars;
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(loadCalendars.pending, (state, action) => {
+        state.isLoading = true;
+      })
+      .addCase(loadCalendars.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = {};
+      })
+
   },
 });
 
 const reducer = calendarSlice.reducer;
 export { loadCalendars, reducer };
+
+

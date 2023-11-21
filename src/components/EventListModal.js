@@ -9,6 +9,9 @@ import {
     Tr, Td, Thead, Table, Tbody, Th,
     Tag,
     Badge,
+    ModalCloseButton,
+    ModalFooter,
+    Text,
     ModalBody
 } from '@chakra-ui/react'
 
@@ -72,14 +75,29 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
         }))
     }
 
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} size="xxl">
+    if (!sortedByStartTimeIds || sortedByStartTimeIds.length === 0) {
+        return (<Modal isOpen={isOpen} onClose={onClose} size="xs" isCentered={true}>
             <ModalOverlay />
             <ModalContent>
                 <ModalHeader>{title}</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Text>No events</Text>
+                </ModalBody>
+                <ModalFooter />
+            </ModalContent>
+        </Modal>)
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} size="xxl" isCentered={true} >
+            <ModalOverlay />
+            <ModalContent>
+                <ModalHeader>{title}</ModalHeader>
+                <ModalCloseButton />
                 <ModalBody>
                     <Table variant="simple" size="sm">
-                        <Thead>
+                        <Thead position="sticky" top={0} zIndex="docked" background={'white'}>
                             <Tr>
                                 <Th>Event name</Th>
                                 <Th>Start time</Th>
@@ -93,6 +111,7 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
                         </Tbody>
                     </Table>
                 </ModalBody>
+                <ModalFooter />
             </ModalContent>
         </Modal>
     );
