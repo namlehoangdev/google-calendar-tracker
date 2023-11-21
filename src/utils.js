@@ -1,9 +1,7 @@
 
-import { DateTime } from 'luxon';
 import { TIME_ZONE } from './config';
 import moment from 'moment-timezone';
 
-window.nam = moment;
 
 function getCurrentTimeISO8601() {
     const currentTime = moment().tz(TIME_ZONE).format();
@@ -18,14 +16,23 @@ function getBeautyTimeISO8601(dateTime) {
     return dateTime && dateTime.substring(0, 16).replace('T', ' ');
 }
 
-function getMonthDiff(date1, date2) {
+function getDiffs(date1, date2) {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
+    const diffInMilliseconds = d2 - d1;
 
     const diffYears = d2.getUTCFullYear() - d1.getUTCFullYear();
     const diffMonths = d2.getUTCMonth() - d1.getUTCMonth();
+    const monthDiff = diffYears * 12 + diffMonths;
 
-    return diffYears * 12 + diffMonths;
+    const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+    const weekDiff = Math.floor(diffInMilliseconds / millisecondsPerWeek);
+
+    const millisecondsPerDay = 1000 * 60 * 60 * 24;
+    const dayDiff = Math.floor(diffInMilliseconds / millisecondsPerDay);
+
+
+    return { monthDiff, weekDiff, dayDiff };
 }
 
 const monthNamesShort = [
@@ -48,5 +55,5 @@ function simpleShortDays(dateTime) {
 
 
 
-export { getCurrentTimeISO8601, convertToISOWithTimeZone, getBeautyTimeISO8601, getMonthDiff, simpleShortDays };
+export { getCurrentTimeISO8601, convertToISOWithTimeZone, getBeautyTimeISO8601, getDiffs, simpleShortDays };
 

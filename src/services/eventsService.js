@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { triggerUpdateTime } from './commonService';
 import apiCalendar from '../apiCalendar';
-import { TIME_ZONE } from '../config';
+import { OFF_FLAG, TIME_ZONE } from '../config';
 
 
 const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar',
@@ -45,9 +45,7 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
         const startTimeA = new Date(events[a].start.dateTime);
         const startTimeB = new Date(events[b].start.dateTime);
         return startTimeA - startTimeB;
-      });
-
-      console.log(currentTime);
+      }); 
       return { calendarId, sortedByStartTimeIds, events, currentTimeISO8601: currentTime }
     } catch (error) {
       console.log("EventService.loadAllEventsInCalendar", error);
@@ -57,7 +55,7 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
 
 function updateEventIds(events, sortedByStartTimeIds, givenTime) {
   const currentTime = new Date(givenTime);
-  console.log(givenTime, currentTime);
+ 
 
   let happeningIds = [];
   let upcomingIds = [];
@@ -72,7 +70,7 @@ function updateEventIds(events, sortedByStartTimeIds, givenTime) {
 
     const eventStartTime = new Date(event.start.dateTime);
     const eventEndTime = new Date(event.end.dateTime);
-    const isOff = event.summary.startsWith("off:");
+    const isOff = event.summary.startsWith(OFF_FLAG);
 
 
     if (currentTime < eventStartTime) {

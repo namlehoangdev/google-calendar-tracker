@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react'
 
 import { getBeautyTimeISO8601 } from '../utils';
+import { OFF_FLAG } from '../config';
 
 
 export default function EventListModal({ title, eventObj, isOpen, onOpen, onClose }) {
@@ -32,9 +33,9 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
     const reversedUpcomingIds = [...upcomingIds].reverse();
 
     function getStatusConfig(summary, isUpcoming) {
-        const isOff = summary.startsWith("off:")
+        const isOff = summary.startsWith(OFF_FLAG)
         if (isUpcoming) {
-            return isOff ? { status: "ERROR", bgStatus: "tomato" } : { status: "Available", bgStatus: "green.400" }
+            return isOff ? { status: "ERROR", bgStatus: "tomato" } : { status: "Available", bgStatus: "blue.400" }
 
         }
         return isOff ? { status: "Off", bgStatus: "gray.400" } : { status: "Active", bgStatus: "green.400" }
@@ -61,9 +62,9 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
                     {getBeautyTimeISO8601(rawEnd.dateTime)}
                 </Td>
                 <Td>
-                    {status === "Available" ? "Available" : <Badge bg={bgStatus} color={"white"} >
+                    <Badge bg={bgStatus} color={"white"} >
                         {status}
-                    </Badge>}
+                    </Badge>
 
                 </Td>
             </Tr>)

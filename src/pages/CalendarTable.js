@@ -5,7 +5,7 @@ import { Table, Thead, Box, ListIcon, Link, Tbody, Icon, Button, Tr, Th, Td, Fle
 import EventListModal from '../components/EventListModal';
 import { FaEllipsisV, FaSync } from "react-icons/fa";
 
-import { getMonthDiff, simpleShortDays } from '../utils';
+import { getDiffs, simpleShortDays } from '../utils';
 
 
 
@@ -46,19 +46,19 @@ export default function CalendarTable({ calendars, calendarIds, eventsByCalendar
                             <Link
                                 color={"red"}
                                 onClick={() => handleClick({ eventObj: eventsByCalendarId[calendarId], title: calendars[calendarId]?.summary })}>
-                                Errors there are <b>{upcomingOff}</b> future events marked OFFLINE. <br />Please <b>delete</b> it or <b>remove the "off:" tag</b>  !!
+                                Errors there are <b>{upcomingOff}</b> future events marked offline. <br />Please <b>delete</b> it or <b>remove the "off:" tag</b>.
                                 Click to see more.
 
                             </Link>
                             <br />
                         </>}
                     <Text fontSize="sm" >
-                        Upcoming <b>{upcomingIds.length}</b>
+                        Upcoming: <b>{upcomingIds.length}</b>
                     </Text>
 
 
                     <Text fontSize="sm" >
-                        Active passed: <b>{activePassed}</b>
+                        Passed: <b>{activePassed}</b>
                         <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>  (<b>{tilNowPassed}</b> events - <b>{tilNowOff}</b> offs)</Text>
                     </Text>
 
@@ -76,11 +76,7 @@ export default function CalendarTable({ calendars, calendarIds, eventsByCalendar
 
     function renderNames(calendar, eventObj, calendarId) {
         const { summary, backgroundColor, foregroundColor, selected } = calendar || {};
-        const { happeningIds = [], pastIds = [], sortedByStartTimeIds = [], pastOff = 0, happeningOff = 0 } = eventObj || {}
 
-        const totalAvailable = sortedByStartTimeIds.length - (happeningOff + pastOff);
-        const activePassed = happeningIds.length + pastIds.length - (happeningOff + pastOff);
-        const progress = Math.round(activePassed / Math.max(totalAvailable, 1) * 100, 2);
 
         return (<Td>
             <Flex direction="row" alignContent={"center"}>
@@ -97,6 +93,36 @@ export default function CalendarTable({ calendars, calendarIds, eventsByCalendar
                 />
                 {summary}
             </Flex>
+
+        </Td>)
+    }
+
+
+    function renderEventTimes(eventObj) {
+
+        const { happeningIds = [], pastIds = [], sortedByStartTimeIds = [], pastOff = 0, happeningOff = 0, events } = eventObj || {}
+        const firstEvent = sortedByStartTimeIds.length > 0 ? events[sortedByStartTimeIds[0]] : null;
+        const lastEvent = sortedByStartTimeIds.length > 0 ? events[sortedByStartTimeIds[sortedByStartTimeIds.length - 1]] : null;
+
+
+
+        const totalAvailable = sortedByStartTimeIds.length - (happeningOff + pastOff);
+        const activePassed = happeningIds.length + pastIds.length - (happeningOff + pastOff);
+        const progress = Math.round(activePassed / Math.max(totalAvailable, 1) * 100, 2);
+
+        const { monthDiff, weekDiff, dayDiff } = getDiffs(firstEvent?.start?.dateTime || 0,
+            lastEvent?.start?.dateTime || 0);
+
+        return (<Td>
+            <Flex direction="column">
+                <Text fontSize="sm" >
+                    <b>{monthDiff}</b> months or <b>{weekDiff}</b> weeks or  <b>{dayDiff}</b> days  
+                    <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>
+                        From  <b>{simpleShortDays(firstEvent?.start?.dateTime)}</b>  to  <b>{simpleShortDays(lastEvent?.start?.dateTime)}</b>
+                    </Text>
+                </Text>
+
+            </Flex>
             <br />
             <Flex direction="column">
                 <Text
@@ -111,27 +137,6 @@ export default function CalendarTable({ calendars, calendarIds, eventsByCalendar
                     value={progress}
                     borderRadius="15px"
                 />
-            </Flex>
-        </Td>)
-    }
-
-
-    function renderEventTimes(eventObj) {
-        const { events, sortedByStartTimeIds = [], } = eventObj || {};
-
-        const firstEvent = sortedByStartTimeIds.length > 0 ? events[sortedByStartTimeIds[0]] : null;
-        const lastEvent = sortedByStartTimeIds.length > 0 ? events[sortedByStartTimeIds[sortedByStartTimeIds.length - 1]] : null;
-
-        return (<Td>
-            <Flex direction="column">
-                <Text fontSize="sm" >
-                    Total months <b>{getMonthDiff(firstEvent?.start?.dateTime || 0,
-                        lastEvent?.start?.dateTime || 0)}</b>
-                    <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>
-                        From  <b>{simpleShortDays(firstEvent?.start?.dateTime)}</b>  to  <b>{simpleShortDays(lastEvent?.start?.dateTime)}</b>
-                    </Text>
-                </Text>
-
             </Flex>
         </Td>)
 
@@ -168,7 +173,7 @@ export default function CalendarTable({ calendars, calendarIds, eventsByCalendar
                         <Tr>
                             <Th>My calendars</Th>
                             <Th>Summary</Th>
-                            <Th>Times</Th>
+                            <Th>Duration</Th>
                             <Th>Events</Th>
                         </Tr>
                     </Thead>
