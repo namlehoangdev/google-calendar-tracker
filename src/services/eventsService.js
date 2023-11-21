@@ -125,10 +125,8 @@ const eventSlice = createSlice({
         const calendarId = action?.meta?.arg?.calendarId;
         if (calendarId) {
           if (state[calendarId]) {
-            console.log('here:', true);
             state[calendarId].isLoading = true;
           } else {
-            console.log('here2:', true);
             state[calendarId] = { isLoading: true }
           }
         }
