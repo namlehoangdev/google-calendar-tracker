@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { loadAllEventsInCalendar } from './eventsService';
-import apiCalendar from '../apiCalendar';
+import { ApiCalendar } from 'apis';
 
 
 const loadCalendars = createAsyncThunk('calendar/loadCalendars', async (params, { dispatch }) => {
@@ -10,7 +10,7 @@ const loadCalendars = createAsyncThunk('calendar/loadCalendars', async (params, 
     let pageToken = null;
 
     do {
-      const response = await apiCalendar.listCalendars();
+      const response = await ApiCalendar.listCalendars();
       console.log("CalendarService.loadCalendars", response);
 
       if (response && response.result && response.result.items) {

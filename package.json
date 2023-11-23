@@ -1,5 +1,5 @@
 {
-  "name": "schedule-management",
+  "name": "google-calendar-event-tracker",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

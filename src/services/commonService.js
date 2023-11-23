@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { TIME_ZONE } from '../config';
-import { getCurrentTimeISO8601 } from '../utils';
+import { TIME_ZONE } from 'configs';
+import { getCurrentTimeISO8601 } from 'utils/dateTimeUtil';
 
 
 const initialState = {

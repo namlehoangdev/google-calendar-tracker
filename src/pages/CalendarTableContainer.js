@@ -1,38 +1,27 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-    Table, Thead, Box, ListIcon, Link, Tbody, Icon, Button, Spinner, Tr, Th, Td, Flex, Checkbox, Tag, Text, useDisclosure, UnorderedList, ListItem, Progress,
-    CircularProgress,
-    Center,
-    CircularProgressLabel,
-    Skeleton
+    Table, Thead, Box, Link, Tbody, Icon, Button, Spinner, Tr, Th, Td, Flex, Checkbox, Text, useDisclosure, Progress,
+    CircularProgress, CircularProgressLabel, Skeleton
 } from '@chakra-ui/react';
-
-import EventListModal from '../components/EventListModal';
 import { FaEllipsisV, FaSync } from "react-icons/fa";
 
-import { getDiffs, simpleShortDays, parseDateTime } from '../utils';
+import { EventListModal } from 'components';
+import { getDiffs, parseDateTime } from 'utils/dateTimeUtil';
+import { setWarningColor, getIsLoadingStyle } from 'utils/uiUtil';
 
-function getIsLoadingStyle(isLoading) {
-    return isLoading ? {
-        style: {
-            pointerEvents: isLoading ? 'none' : 'auto',
-            opacity: isLoading ? 0.5 : 1,
-        },
-    } : {};
-}
-function setWarningColor(percentage) {
-    const green = [0, 255, 0]; // RGB values for green
-    const red = [255, 0, 0]; // RGB values for red
 
-    const transformedColor = green.map((greenValue, index) => {
-        const redValue = red[index];
-        const transformedValue = Math.round(greenValue + ((redValue - greenValue) * Math.sqrt(percentage / 100)));
-        return transformedValue;
-    });
-
-    const rgbColor = `rgb(${transformedColor[0]}, ${transformedColor[1]}, ${transformedColor[2]})`;
-    return rgbColor;
+function containDescriptionCol(calendarIds, calendars) {
+    if (!calendarIds || calendarIds.length === 0) {
+        return false;
+    }
+    for (let id of calendarIds) {
+        const desc = calendars[id]?.description;
+        if (desc && desc.trim().length > 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -45,6 +34,9 @@ export default function CalendarTable({ onRefresh = () => { } }) {
     const [modalData, setModalData] = useState({});
 
     const isRenderSkeleton = isLoading && (!calendarIds || calendarIds.length === 0);
+
+    const hasDescCol = containDescriptionCol(calendarIds, calendars);
+    console.log(hasDescCol);
 
 
     function handleClick(modalData) {
@@ -98,7 +90,6 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                                     onClick={() => handleClick({ eventObj: eventsByCalendarId[calendarId], title: calendars[calendarId]?.summary })}>
                                     Errors there are <b>{upcomingOff}</b> future events marked offline. <br />Please <b>delete</b> it or <b>remove the "off:" tag</b>.
                                     Click to see more.
-
                                 </Link>
                                 <br />
                             </>}
@@ -112,39 +103,33 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                             <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>  (<b>{tilNowPassed}</b> events - <b>{tilNowOff}</b> offs)</Text>
                         </Text>
 
-
-
-
                         <Text fontSize="sm" >Total available: <b>{totalBooked - tilNowOff}</b>
                             <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}> (<b>{totalBooked}</b> events - <b>{tilNowOff}</b> offs)</Text>
                         </Text>
-
-
                     </Flex>
-
-
                 </Flex>
             </Td >)
     }
 
-    function renderNames(calendar, eventObj, calendarId) {
+    function renderNames(calendar) {
         const { summary, backgroundColor, foregroundColor, selected } = calendar || {};
 
 
         return (<Td>
             <Flex direction="row" alignContent={"center"}>
-                <Checkbox
-                    isReadOnly={true}
-                    colorScheme={backgroundColor}
-                    style={{
-                        backgroundColor: selected ? backgroundColor : 'white',
-                        borderColor: backgroundColor,
-                        color: foregroundColor,
-                    }}
-                    defaultChecked={selected}
-                    mr={2}
-                />
-                {summary}
+                <Box mr={2} p={0} mt={0.5}>
+                    <Checkbox
+                        isReadOnly={true}
+                        colorScheme={backgroundColor}
+                        style={{
+                            backgroundColor: selected ? backgroundColor : 'white',
+                            borderColor: backgroundColor,
+                            color: foregroundColor,
+                        }}
+                        defaultChecked={selected}
+                    />
+                </Box>
+                <Text>{summary}</Text>
             </Flex>
 
         </Td>)
@@ -157,8 +142,6 @@ export default function CalendarTable({ onRefresh = () => { } }) {
         const firstEvent = sortedByStartTimeIds.length > 0 ? events[sortedByStartTimeIds[0]] : null;
         const lastEvent = sortedByStartTimeIds.length > 0 ? events[sortedByStartTimeIds[sortedByStartTimeIds.length - 1]] : null;
 
-
-
         const totalAvailable = sortedByStartTimeIds.length - (happeningOff + pastOff);
         const activePassed = happeningIds.length + pastIds.length - (happeningOff + pastOff);
         const progress = Math.round(activePassed / Math.max(totalAvailable, 1) * 100, 2);
@@ -167,18 +150,15 @@ export default function CalendarTable({ onRefresh = () => { } }) {
             lastEvent?.start?.dateTime || 0);
 
         return (<Td>
-            <Flex direction="column">
-                <Text fontSize="sm" >
-                    <b>{monthDiff}</b> months or <b>{weekDiff}</b> weeks or  <b>{dayDiff}</b> days
-                    <Text as={"span"} fontSize="xs" opacity={0.5} ml={3}>
-                        From  <b>{parseDateTime(firstEvent?.start)?.dateString}</b>{" "}
-                        to  <b>{parseDateTime(lastEvent?.end)?.dateString}</b>
-                    </Text>
-                </Text>
+            <Text fontSize="sm" >
+                <b>{monthDiff}</b> months or <b>{weekDiff}</b> weeks or  <b>{dayDiff}</b> days
+            </Text>
 
-            </Flex>
-            <br />
-            <Flex direction="column">
+            <Text as={"span"} fontSize="xs" opacity={0.5}>
+                From  <b>{parseDateTime(firstEvent?.start)?.dateString}</b>{" "}
+                to  <b>{parseDateTime(lastEvent?.end)?.dateString}</b>
+            </Text>
+            <Flex direction="column" mt={2}>
                 <Text
                     fontSize="md"
                     color="blue.500"
@@ -190,10 +170,20 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                     size="xs"
                     value={progress}
                     borderRadius="15px"
-                    maxWidth={400}
+                    maxWidth={350}
                 />
             </Flex>
         </Td>)
+    }
+
+    function renderDescription(calendar) {
+        return hasDescCol &&
+            (<Td>
+                {calendar.description && calendar.description.split("\n").map(
+                    desc => <Text>{desc}</Text>
+                )}
+            </Td>);
+
     }
 
 
@@ -203,7 +193,8 @@ export default function CalendarTable({ onRefresh = () => { } }) {
 
             return (
                 <Tr key={calendarId} {...getIsLoadingStyle(isClendarLoading)}>
-                    {renderNames(calendars[calendarId], eventsByCalendarId[calendarId])}
+                    {renderNames(calendars[calendarId])}
+                    {renderDescription(calendars[calendarId])}
                     {renderEventCounters(eventsByCalendarId[calendarId], calendarId)}
                     {renderEventTimes(eventsByCalendarId[calendarId])}
                     <Td>
@@ -226,6 +217,11 @@ export default function CalendarTable({ onRefresh = () => { } }) {
         return (<Tr>
             <Td>
                 <Skeleton height={5} my={2} maxWidth={400} />
+            </Td>
+            <Td>
+                <Skeleton height={5} my={2} maxWidth={300} />
+                <Skeleton height={5} my={2} maxWidth={200} />
+                <Skeleton height={5} my={2} maxWidth={100} />
             </Td>
             <Td>
                 <Skeleton height={5} my={2} maxWidth={100} />
@@ -251,10 +247,11 @@ export default function CalendarTable({ onRefresh = () => { } }) {
                 <Table variant="simple" >
                     <Thead position="sticky" top={0} zIndex="docked">
                         <Tr>
-                            <Th>My calendars</Th>
+                            <Th>Calendars</Th>
+                            {hasDescCol && <Th>Description</Th>}
                             <Th>Summary</Th>
                             <Th>Duration</Th>
-                            <Th>Events</Th>
+                            <Th>Actions</Th>
                         </Tr>
                     </Thead>
                     <Tbody {...getIsLoadingStyle(isLoading)}>

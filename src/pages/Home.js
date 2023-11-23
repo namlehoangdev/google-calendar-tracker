@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Heading, Input, Flex, Button, Icon, Spinner, Center } from '@chakra-ui/react';
-
-import AuthenticateModal from '../components/AuthenticateModal';
-import Footer from '../components/Footer';
-import CalendarTable from './CalendarTable';
-
-import { loadCalendars } from '../services/calendarsService';
-import { loadAllEventsInCalendar } from '../services/eventsService';
-import { triggerUpdateTime } from '../services/commonService';
-import { convertToISOWithTimeZone, getCurrentTimeISO8601 } from '../utils';
-
 import { FaSync } from "react-icons/fa";
+import { Footer, AuthenticateModal } from 'components';
+import { loadCalendars } from 'services/calendarsService';
+import { loadAllEventsInCalendar } from 'services/eventsService';
+import { triggerUpdateTime } from 'services/commonService';
+import { convertToISOWithTimeZone, getCurrentTimeISO8601 } from 'utils/dateTimeUtil';
+
+import CalendarTable from './CalendarTableContainer';
+
 
 
 
@@ -19,7 +17,7 @@ export default function Home() {
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated, (prevValue, curValue) => {
         return !!prevValue === !!curValue;
     });
-    const { calendarIds, isLoading } = useSelector((state) => state.calendar);
+    const { isLoading } = useSelector((state) => state.calendar);
     const { currentTimeISO8601 } = useSelector((state) => state.common);
     const [triggerRefreshAll, updateTriggerRefresh] = useState(false);
 
@@ -64,7 +62,7 @@ export default function Home() {
     function handleRefreshAll() {
         updateTriggerRefresh(!triggerRefreshAll);
     }
-    
+
 
     return (
         <Flex flexDirection="column" minHeight="100vh">
@@ -72,10 +70,10 @@ export default function Home() {
             <Box p={4} mb={10} pt={10}>
                 <Center>
                     <Heading as="h1" size="md" color="blue.500" center={true}>
-                        Calendar's events analytics tool
+                        Google Calendar's events tracker
                     </Heading>
                 </Center>
-                <Flex mt={5} mb={10}center="center" align={"center"} justify={"center"}>
+                <Flex mt={5} mb={10} center="center" align={"center"} justify={"center"}>
                     <Input
                         ml={3}
                         value={convertToISOWithTimeZone(currentTimeISO8601)}
@@ -84,7 +82,7 @@ export default function Home() {
                         size="md"
                         type="datetime-local"
                         isReadOnly={true}
-                        width={"200px"}
+                        width={200}
                     />
                     <Button p="0px" bg="transparent" onClick={handleRefreshAll}>
                         {isLoading ? <Spinner size="md" color="blue.500" />
@@ -94,6 +92,6 @@ export default function Home() {
                 <CalendarTable onRefresh={handleRefreshCalendar} />
             </Box>
             <Footer />
-        </Flex >
+        </Flex>
     );
 };

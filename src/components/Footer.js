@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text, Link, Flex } from '@chakra-ui/react';
 import { FaLinkedin, FaFacebook, FaGithub } from "react-icons/fa";
+import { ContactInfo } from "configs";
 
 function Footer() {
     return (
@@ -12,14 +13,13 @@ function Footer() {
                 height="60px"
             >
                 <Text fontSize="sm">
-
                     Please contact me at{" "}
-                    <Link href="mailto:namlehoangdev@gmail.com" color="blue.600">
-                        namlehoangdev@gmail.com
+                    <Link href={`mailto:${ContactInfo.EMAIL}`} color="blue.600">
+                        {ContactInfo.EMAIL}
                     </Link>{" "}
                     or call me at{" "}
-                    <Link href="tel:+84768039789" color="blue.600">
-                        +84768039789
+                    <Link href={`tel:${ContactInfo.PHONE}`} color="blue.600">
+                        {ContactInfo.PHONE}
                     </Link>
                     .
                 </Text>
@@ -32,24 +32,22 @@ function Footer() {
                     ml="auto"
                 >
                     <Box mx={2}>
-                        <Link href="https://www.linkedin.com/in/lehoangnam/" isExternal>
+                        <Link href={ContactInfo.LINKEDIN} isExternal>
                             <FaLinkedin size={20} />
                         </Link>
                     </Box>
                     <Box mx={2}>
-                        <Link href="https://www.facebook.com/namlehoangdev/" isExternal>
+                        <Link href={ContactInfo.FACEBOOK} isExternal>
                             <FaFacebook size={20} />
                         </Link>
                     </Box>
                     <Box mx={2}>
-                        <Link href="https://github.com/namlehoangdev" isExternal>
+                        <Link href={ContactInfo.GITHUB} isExternal>
                             <FaGithub size={20} />
                         </Link>
                     </Box>
                 </Flex>
             </Flex>
-
-
         </Box>
     );
 }

@@ -1,27 +1,27 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { triggerUpdateTime } from './commonService';
-import apiCalendar from '../apiCalendar';
-import { OFF_FLAG, TIME_ZONE } from '../config';
- 
+import { ApiCalendar } from 'apis';
+import { OFF_FLAG, TIME_ZONE } from 'configs';
 
-function adaptStartTime(time, suffix) {
+
+function transformStartTime(time, suffix) {
   if (time.date) {
     return {
       dateTime: time.date + "T00:00:00" + suffix,
       timeZone: TIME_ZONE,
-      isConverted: true
+      isTransformed: true
     }
   } else {
     return time;
   }
 }
 
-function adaptEndTime(time, suffix) {
+function transformEndTime(time, suffix) {
   if (time.date) {
     return {
       dateTime: time.date + "T23:59:59" + suffix,
       timeZone: TIME_ZONE,
-      isConverted: true
+      isTransformed: true
     }
   } else {
     return time;
@@ -39,7 +39,7 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
       const suffixZone = currentTimeISO8601.toString().substring(19);
 
       do {
-        const response = await apiCalendar.listEvents({
+        const response = await ApiCalendar.listEvents({
           singleEvents: true,
           pageToken: pageToken,
           ...queryOptions,
@@ -50,7 +50,7 @@ const loadAllEventsInCalendar = createAsyncThunk('event/loadAllEventsInCalendar'
 
         if (response && response.result && response.result.items) {
           response.result.items.forEach(item => {
-            let adaptEvent = { ...item, start: adaptStartTime(item.start, suffixZone), end: adaptEndTime(item.end, suffixZone) };
+            let adaptEvent = { ...item, start: transformStartTime(item.start, suffixZone), end: transformEndTime(item.end, suffixZone) };
 
             if (events[item.id]) {
               events[item.id] = {
@@ -160,11 +160,9 @@ const eventSlice = createSlice({
       })
 
       .addCase(triggerUpdateTime, (state, action) => {
-
         if (!state) {
           return;
         }
-
         const currentTimeISO8601 = action.payload;
         for (let calendarId of Object.keys(state)) {
           const { sortedByStartTimeIds, events } = state[calendarId];

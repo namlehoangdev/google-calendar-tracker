@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import {
     Modal,
@@ -7,7 +7,6 @@ import {
     ModalContent,
     ModalHeader,
     Tr, Td, Thead, Table, Tbody, Th,
-    Tag,
     Badge,
     ModalCloseButton,
     ModalFooter,
@@ -15,45 +14,29 @@ import {
     ModalBody,
 } from '@chakra-ui/react'
 
-import { getBeautyTimeISO8601, parseDateTime } from '../utils';
-import { OFF_FLAG } from '../config';
+import { parseDateTime } from 'utils/dateTimeUtil';
+import { OFF_FLAG } from 'configs';
 
 
 export default function EventListModal({ title, eventObj, isOpen, onOpen, onClose }) {
-    const { happeningIds = [], upcomingIds = [], pastIds = [], events,
-        sortedByStartTimeIds = [],
-        pastOff = 0, happeningOff = 0, upcomingOff = 0 } = eventObj || {}
-
-    const totalOff = pastOff + upcomingOff + happeningOff;
-    const tilNowPassed = happeningIds.length + pastIds.length;
-    const tilNowOff = happeningOff + pastOff;
-
-    const activePassed = tilNowPassed - tilNowOff;
-    const totalBooked = sortedByStartTimeIds.length;
-
-
+    const { happeningIds = [], upcomingIds = [], pastIds = [], events, sortedByStartTimeIds = [] } = eventObj || {}
     const reversedPassedIds = pastIds.concat(happeningIds).reverse();
     const reversedUpcomingIds = [...upcomingIds].reverse();
-
-
 
     function getStatusConfig(summary, isUpcoming) {
         const isOff = summary.startsWith(OFF_FLAG)
         if (isUpcoming) {
             return isOff ? { status: "ERROR", bgStatus: "tomato" } : { status: "Available", bgStatus: "blue.400" }
-
         }
         return isOff ? { status: "Off", bgStatus: "gray.400" } : { status: "Active", bgStatus: "green.400" }
     }
-
 
     function renderRows(ids, events, isUpcoming) {
         if (!events || !ids) {
             return null;
         }
         return (ids.map(id => {
-            const { summary, start: rawStart, end: rawEnd } = events[id] || {};
-
+            const { summary, start: rawStart, end: rawEnd, description } = events[id] || {};
             const { status, bgStatus } = getStatusConfig(summary, isUpcoming);
 
             const start = parseDateTime(rawStart);
@@ -62,6 +45,9 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
             return (<Tr key={id} opacity={isUpcoming ? 1 : 0.5}>
                 <Td >
                     {summary}
+                </Td>
+                <Td>
+                    <Text dangerouslySetInnerHTML={{ __html: description }} />
                 </Td>
                 <Td whiteSpace="nowrap">
                     {start.time} {start.dateString}
@@ -105,6 +91,7 @@ export default function EventListModal({ title, eventObj, isOpen, onOpen, onClos
                         <Thead position="sticky" top={0} zIndex="docked" background={'white'}>
                             <Tr>
                                 <Th>Event name</Th>
+                                <Th>Description</Th>
                                 <Th>Start time</Th>
                                 <Th>End time</Th>
                                 <Th>Status</Th>

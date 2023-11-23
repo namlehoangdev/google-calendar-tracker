@@ -7,13 +7,14 @@ import {
     ModalContent,
     ModalHeader,
     ModalFooter,
-    Button
-    , useDisclosure,
-    ModalBody
+    Button,
+    ModalBody,
+    useDisclosure,
 } from '@chakra-ui/react'
 import { FaGoogle } from "react-icons/fa";
-import apiCalendar from '../apiCalendar';
-import { login } from '../services/authService';
+import { login } from 'services/authService';
+import { ApiCalendar } from 'apis';
+
 
 
 export default function AuthenticateModal({ onSuccess = () => { } }) {
@@ -32,7 +33,7 @@ export default function AuthenticateModal({ onSuccess = () => { } }) {
 
 
     async function handleSignIn() {
-        const authInfo = await apiCalendar.handleAuthClick();
+        const authInfo = await ApiCalendar.handleAuthClick();
         dispatch(login(authInfo));
         onSuccess();
     }
@@ -46,7 +47,7 @@ export default function AuthenticateModal({ onSuccess = () => { } }) {
                     Login to sync calendars and events from your Google Calendar
                 </ModalBody>
                 <ModalFooter>
-                    <Button 
+                    <Button
                         variant="outline" onClick={handleSignIn}
                         leftIcon={<FaGoogle color='tomato' />}>
                         Continue with Google

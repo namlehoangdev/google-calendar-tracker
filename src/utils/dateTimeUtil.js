@@ -1,7 +1,6 @@
 
-import { TIME_ZONE } from './config';
 import moment from 'moment-timezone';
-
+import { TIME_ZONE } from 'configs';
 
 function getCurrentTimeISO8601() {
     const currentTime = moment().tz(TIME_ZONE).format();
@@ -53,17 +52,13 @@ function simpleShortDays(dateTime) {
     return `${day} ${month}`
 }
 
-
-
 function parseDateTime(dateTime) {
     if (!dateTime) {
         return { time: "--:--", dateString: "--/--/--" };
     }
 
-    const { dateTime: input, isConverted } = dateTime;
-
-
-    const time = isConverted ? "--:--" : input.substring(11, 16);
+    const { dateTime: input, isTransformed } = dateTime;
+    const time = isTransformed ? "--:--" : input.substring(11, 16);
     const date = input.substring(8, 10);
     const month = input.substring(5, 7);
     const year = input.substring(0, 4);
