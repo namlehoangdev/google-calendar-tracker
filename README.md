@@ -17,7 +17,7 @@ Effortlessly track and count upcoming, ongoing, and past events for each of your
 ## Installation
 1. Clone the repository.
 2. Run `npm install` to install the dependencies.
-3. `Optional for count off events feature` Install plugin Chrome, Edge: "Tags for Google Calendar™". Link [here](https://chromewebstore.google.com/detail/
+3. `Optional for count off events feature, just only for better UX on Chrome, Edge` Install plugin Chrome, Edge: `Tags for Google Calendar™"`. Link [here](https://chromewebstore.google.com/detail/tags-for-google-calendar/ncpjnjohbcgocheijdaafoidjnkpajka)
 
 ## Configuration
 
@@ -40,7 +40,7 @@ With the tool
 1. Run `npm start` to start the development server.
 2. Open your browser and navigate to `http://localhost:3000` to view the application.
 With Google Calendar
-1. If you want to use count off function. Change event's title with prefix `off:`. See more at  `Step 3 of Installation` of [Installation](#installation)
+1. If you want to use count off function. Change event's title with prefix `off:`. For more better UX install plugin at  `Step 3 of Installation` of [Installation](#installation)
 
 ## Build
 1. Run `npm run build` to start the development server.
